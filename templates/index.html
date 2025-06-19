@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prediksi Harga Bawang Merah</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Prediksi Harga Bawang Merah</h1>
+
+        <div class="input-section">
+            <label for="target_date">Masukkan Tanggal Target:</label>
+            <input type="date" id="target_date" name="target_date">
+            <button onclick="predictPrice()">Prediksi</button>
+        </div>
+
+        <div id="loading-indicator" class="loading-hidden">
+            <div class="spinner"></div>
+            Memproses prediksi...
+        </div>
+
+        <div class="results-section">
+            <h2>Hasil Prediksi Terakhir:</h2>
+            <div id="last_prediction">
+                <!-- Harga prediksi terakhir akan ditampilkan di sini -->
+            </div>
+
+            <h2>Semua Hasil Prediksi:</h2>
+            <div id="prediction_results">
+                <!-- Hasil prediksi (list) akan ditampilkan di sini -->
+            </div>
+
+            <h2>Grafik Prediksi:</h2>
+            <canvas id="predictionChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null; // Variabel untuk menyimpan instance Chart.js
+
+        async function predictPrice() {
+            const targetDate = document.getElementById('target_date').value;
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const resultsDiv = document.getElementById('prediction_results');
+            const lastPredictionDiv = document.getElementById('last_prediction');
+            const chartCanvas = document.getElementById('predictionChart');
+
+            if (!targetDate) {
+                alert("Pilih tanggal target!");
+                return;
+            }
+
+            // Tampilkan loading indicator dan sembunyikan hasil sebelumnya
+            loadingIndicator.classList.remove('loading-hidden');
+            loadingIndicator.classList.add('loading-visible');
+            resultsDiv.innerHTML = '';
+            lastPredictionDiv.innerHTML = '';
+             if (myChart) {
+                myChart.destroy(); // Hancurkan chart sebelumnya jika ada
+             }
+
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ target_date: targetDate })
+                });
+
+                const data = await response.json();
+
+                // Sembunyikan loading indicator
+                loadingIndicator.classList.remove('loading-visible');
+                loadingIndicator.classList.add('loading-hidden');
+
+
+                if (data.error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+                    lastPredictionDiv.innerHTML = '';
+                } else if (data.predictions && data.predictions.length > 0) {
+                    // Tampilkan harga prediksi terakhir
+                    const lastPred = data.predictions[data.predictions.length - 1];
+                    lastPredictionDiv.innerHTML = `<p>Tanggal: ${lastPred.tanggal}, Harga: ${lastPred.harga_prediksi.toFixed(2)}</p>`;
+
+                    // Tampilkan semua hasil prediksi dalam list
+                    let html = '<ul>';
+                    data.predictions.forEach(pred => {
+                        html += `<li>Tanggal: ${pred.tanggal}, Harga: ${pred.harga_prediksi.toFixed(2)}</li>`;
+                    });
+                    html += '</ul>';
+                    resultsDiv.innerHTML = html;
+
+                    // Tampilkan grafik
+                    renderChart(data.predictions);
+
+                } else {
+                     resultsDiv.innerHTML = `<p>Tidak ada data prediksi.</p>`;
+                     lastPredictionDiv.innerHTML = '';
+                }
+
+            } catch (error) {
+                console.error("Fetch error:", error);
+                // Sembunyikan loading indicator
+                loadingIndicator.classList.remove('loading-visible');
+                loadingIndicator.classList.add('loading-hidden');
+                resultsDiv.innerHTML = `<p style="color: red;">Terjadi kesalahan koneksi atau server.</p>`;
+                lastPredictionDiv.innerHTML = '';
+            }
+        }
+
+        function renderChart(predictions) {
+             const ctx = document.getElementById('predictionChart').getContext('2d');
+
+             const dates = predictions.map(p => p.tanggal);
+             const prices = predictions.map(p => p.harga_prediksi);
+
+             if (myChart) {
+                 myChart.destroy(); // Hancurkan chart sebelumnya sebelum membuat yang baru
+             }
+
+             myChart = new Chart(ctx, {
+                 type: 'line', // Jenis grafik
+                 data: {
+                     labels: dates, // Tanggal sebagai label sumbu X
+                     datasets: [{
+                         label: 'Harga Prediksi',
+                         data: prices,
+                         borderColor: 'rgb(75, 192, 192)',
+                         tension: 0.1,
+                         fill: false
+                     }]
+                 },
+                 options: {
+                     responsive: true,
+                     scales: {
+                         x: {
+                             type: 'time', // Sumbu X berdasarkan waktu
+                             time: {
+                                 unit: 'day', // Unit waktu adalah hari
+                                 tooltipFormat: 'YYYY-MM-DD', // Format tooltip
+                                 displayFormats: {
+                                     day: 'MMM D' // Format tampilan label
+                                 }
+                             },
+                             title: {
+                                 display: true,
+                                 text: 'Tanggal'
+                             }
+                         },
+                         y: {
+                             title: {
+                                 display: true,
+                                 text: 'Harga'
+                             }
+                         }
+                     },
+                     plugins: {
+                         tooltip: {
+                             callbacks: {
+                                 title: function(context) {
+                                     return moment(context[0].label).format('YYYY-MM-DD');
+                                 }
+                             }
+                         }
+                     }
+                 }
+             });
+         }
+    </script>
+</body>
+</html>
