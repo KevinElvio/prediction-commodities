@@ -8,3 +8,4 @@ djangorestframework
 joblib
 datetime
 flask
+gunicorn==21.2.0
