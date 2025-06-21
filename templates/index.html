@@ -26,12 +26,12 @@
         <div class="results-section">
             <h2>Hasil Prediksi Terakhir:</h2>
             <div id="last_prediction">
-                <!-- Harga prediksi terakhir akan ditampilkan di sini -->
+                <!-- Tampilan Harga prediksi terakhir  -->
             </div>
 
             <h2>Semua Hasil Prediksi:</h2>
             <div id="prediction_results">
-                <!-- Hasil prediksi (list) akan ditampilkan di sini -->
+                <!-- Tampilan List Prediksi -->
             </div>
 
             <h2>Grafik Prediksi:</h2>
@@ -54,13 +54,12 @@
                 return;
             }
 
-            // Tampilkan loading indicator dan sembunyikan hasil sebelumnya
             loadingIndicator.classList.remove('loading-hidden');
             loadingIndicator.classList.add('loading-visible');
             resultsDiv.innerHTML = '';
             lastPredictionDiv.innerHTML = '';
              if (myChart) {
-                myChart.destroy(); // Hancurkan chart sebelumnya jika ada
+                myChart.destroy();
              }
 
 
@@ -75,7 +74,7 @@
 
                 const data = await response.json();
 
-                // Sembunyikan loading indicator
+            
                 loadingIndicator.classList.remove('loading-visible');
                 loadingIndicator.classList.add('loading-hidden');
 
@@ -84,11 +83,9 @@
                     resultsDiv.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
                     lastPredictionDiv.innerHTML = '';
                 } else if (data.predictions && data.predictions.length > 0) {
-                    // Tampilkan harga prediksi terakhir
                     const lastPred = data.predictions[data.predictions.length - 1];
                     lastPredictionDiv.innerHTML = `<p>Tanggal: ${lastPred.tanggal}, Harga: ${lastPred.harga_prediksi.toFixed(2)}</p>`;
 
-                    // Tampilkan semua hasil prediksi dalam list
                     let html = '<ul>';
                     data.predictions.forEach(pred => {
                         html += `<li>Tanggal: ${pred.tanggal}, Harga: ${pred.harga_prediksi.toFixed(2)}</li>`;
@@ -96,7 +93,6 @@
                     html += '</ul>';
                     resultsDiv.innerHTML = html;
 
-                    // Tampilkan grafik
                     renderChart(data.predictions);
 
                 } else {
@@ -106,7 +102,7 @@
 
             } catch (error) {
                 console.error("Fetch error:", error);
-                // Sembunyikan loading indicator
+    
                 loadingIndicator.classList.remove('loading-visible');
                 loadingIndicator.classList.add('loading-hidden');
                 resultsDiv.innerHTML = `<p style="color: red;">Terjadi kesalahan koneksi atau server.</p>`;
@@ -121,13 +117,13 @@
              const prices = predictions.map(p => p.harga_prediksi);
 
              if (myChart) {
-                 myChart.destroy(); // Hancurkan chart sebelumnya sebelum membuat yang baru
+                 myChart.destroy(); 
              }
 
              myChart = new Chart(ctx, {
-                 type: 'line', // Jenis grafik
+                 type: 'line',
                  data: {
-                     labels: dates, // Tanggal sebagai label sumbu X
+                     labels: dates,
                      datasets: [{
                          label: 'Harga Prediksi',
                          data: prices,
@@ -140,12 +136,12 @@
                      responsive: true,
                      scales: {
                          x: {
-                             type: 'time', // Sumbu X berdasarkan waktu
+                             type: 'time',
                              time: {
-                                 unit: 'day', // Unit waktu adalah hari
-                                 tooltipFormat: 'YYYY-MM-DD', // Format tooltip
+                                 unit: 'day', 
+                                 tooltipFormat: 'YYYY-MM-DD',
                                  displayFormats: {
-                                     day: 'MMM D' // Format tampilan label
+                                     day: 'MMM D' 
                                  }
                              },
                              title: {
