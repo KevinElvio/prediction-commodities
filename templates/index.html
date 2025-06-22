@@ -84,11 +84,11 @@
                     lastPredictionDiv.innerHTML = '';
                 } else if (data.predictions && data.predictions.length > 0) {
                     const lastPred = data.predictions[data.predictions.length - 1];
-                    lastPredictionDiv.innerHTML = `<p>Tanggal: ${lastPred.tanggal}, Harga: ${lastPred.harga_prediksi.toFixed(2)}</p>`;
+                    lastPredictionDiv.innerHTML = `<p>Tanggal: ${lastPred.tanggal}, Harga: Rp ${lastPred.harga_prediksi.toFixed(2)}</p>`;
 
                     let html = '<ul>';
                     data.predictions.forEach(pred => {
-                        html += `<li>Tanggal: ${pred.tanggal}, Harga: ${pred.harga_prediksi.toFixed(2)}</li>`;
+                        html += `<li>Tanggal: ${pred.tanggal}, Harga: Rp ${pred.harga_prediksi.toFixed(2)}</li>`;
                     });
                     html += '</ul>';
                     resultsDiv.innerHTML = html;
